@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>轮播插件</title>
+</head>
+<!-- 无缝轮播，让1出现在最后一张的后面，实际上是做不到的，我们只能做个假的 -->
+
+
+<!-- 数据或者状态存储在js变量里 -->
+<!-- 之前是存储在DOM（html）的data-id 或者class里面，但是这样容易被同事修改或者覆盖，html是没有作用域的
+整个dom的元素，是被所有js共享的。 -->
+
+<body>
+    <div class="slides">
+        <ol>
+            <li>
+                <img src="test/1.jpg" alt="">
+            </li>
+            <li>
+                <img src="test/2.jpg" alt="">
+            </li>
+            <li>
+                <img src="test/3.jpg" alt="">
+            </li>
+            <li>
+                <img src="test/4.jpg" alt="">
+            </li>
+        </ol>
+    </div>
+    <style>
+        .frankSlides {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .frankSlides ol {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            transition: transform 0.3s;
+        }
+        
+        .frankSlides ol>li img {
+            vertical-align: top;
+        }
+        
+        .frankSlides-next {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+        
+        .frankSlides-prev {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+    </style>
+</body>
+<script src="js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="http://communication-ui.brilliantearth.com/js/live.js"></script>
+<script>
+    class Slide {
+        constructor(options) {
+            this.options = options
+            this.$element = $(this.options.element)
+            this.$element.addClass('frankSlides')
+            this.timer = undefined
+            this.initHtml()
+            this.bindEvents()
+
+            this.go(0)
+            if (this.options.autoPlay) {
+                this.play()
+            }
+
+        }
+        initHtml() {
+            this.width = this.$element.children('ol').children('li').width()
+            this.$element.width(this.width)
+            this.$prev = $('<button class="frankSlides-prev">上一张</button>')
+            this.$element.append(this.$prev)
+            this.$next = $('<button class="frankSlides-next">下一张</button>')
+            this.$element.append(this.$next)
+        }
+        bindEvents() {
+            this.$prev.on('click', () => this.prev())
+            this.$next.on('click', () => this.next())
+
+            this.$element.on('mouseenter', () => {
+                this.stop()
+            }).on('mouseleave', () => {
+                this.play()
+            })
+        }
+        go(index) {
+            let $ol = this.$element.children('ol')
+            var $items = $ol.children('li')
+            if (index >= $items.length) {
+                index = 0
+            } else if (index < 0) {
+                index = $items.length - 1
+            }
+            $ol.css({
+                //使用模版字符串的写法
+                transform: `translateX(${-index*this.width}px)`
+                    //不使用模版字符串的写法
+                    //                transform: 'translateX(' + (-index)*160 + 'px)'
+                    //这个反引号，是模版字符串，省去了拼接字符串的烦恼
+
+            })
+            this.current = index
+                //存的是当前是第几张
+        }
+        next() {
+            this.go(this.current + 1)
+        }
+        prev() {
+            this.go(this.current - 1)
+        }
+        play() {
+            this.timer = setInterval(() => {
+                this.go(this.current + 1)
+            }, 1000)
+            console.log('this.timer')
+            console.log(this.timer)
+        }
+        stop() {
+            window.clearInterval(this.timer)
+        }
+    }
+    var slide = new Slide({
+        element: '.slides',
+        autoPlay: false,
+        controls: false,
+        pager: false
+    })
+
+    //    slide.next()
+    //    slide.prev()
+    //    slide.stop()
+</script>
+
+</html>
